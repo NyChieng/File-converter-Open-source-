@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FileConverter</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="header">
+    <span class="logo">FileConverter</span>
+    <span class="tagline">Open Source &middot; Files processed in-memory</span>
+  </header>
+
+  <div class="layout">
+    <nav class="sidebar" id="sidebar">
+      <p class="sidebar-label">Tools</p>
+      <button class="tool-btn active" data-tool="image-convert">
+        <span class="tool-icon">Img</span>
+        <span class="tool-name">Image Convert</span>
+      </button>
+      <button class="tool-btn" data-tool="pdf-to-image">
+        <span class="tool-icon">P-I</span>
+        <span class="tool-name">PDF to Image</span>
+      </button>
+      <button class="tool-btn" data-tool="image-to-pdf">
+        <span class="tool-icon">I-P</span>
+        <span class="tool-name">Image to PDF</span>
+      </button>
+      <button class="tool-btn" data-tool="pdf-toolkit">
+        <span class="tool-icon">Kit</span>
+        <span class="tool-name">PDF Toolkit</span>
+      </button>
+      <button class="tool-btn" data-tool="office-to-pdf">
+        <span class="tool-icon">Off</span>
+        <span class="tool-name">Office to PDF</span>
+      </button>
+    </nav>
+
+    <main class="workspace" id="workspace">
+      <div class="steps" id="steps">
+        <div class="step active" data-step="1">
+          <span class="step-num">1</span>
+          <span class="step-label">Upload</span>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step" data-step="2">
+          <span class="step-num">2</span>
+          <span class="step-label">Convert</span>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step" data-step="3">
+          <span class="step-num">3</span>
+          <span class="step-label">Download</span>
+        </div>
+      </div>
+
+      <div class="drop-zone" id="dropZone">
+        <p class="drop-text">Drag and drop your file here</p>
+        <p class="drop-or">or</p>
+        <button class="btn-primary" id="browseBtn">Browse Files</button>
+        <input type="file" id="fileInput" hidden>
+        <p class="drop-limit" id="maxSizeLabel">Max file size: 250MB</p>
+      </div>
+
+      <div class="file-card hidden" id="fileCard">
+        <div class="file-thumb" id="fileThumb"></div>
+        <div class="file-info">
+          <p class="file-name" id="fileName"></p>
+          <div class="file-meta">
+            <span class="format-badge" id="formatBadge"></span>
+            <span class="file-size" id="fileSize"></span>
+            <span class="file-detail" id="fileDetail"></span>
+          </div>
+        </div>
+        <button class="file-remove" id="fileRemove">&times;</button>
+      </div>
+
+      <div class="format-section hidden" id="formatSection">
+        <span class="format-label">Convert to:</span>
+        <div class="format-chips" id="formatChips"></div>
+        <button class="btn-convert" id="convertBtn" disabled>Convert Now</button>
+      </div>
+
+      <div class="progress-section hidden" id="progressSection">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <p class="progress-text" id="progressText">Converting...</p>
+      </div>
+
+      <div class="result-section hidden" id="resultSection">
+        <div class="result-preview" id="resultPreview">
+          <p class="placeholder">Your converted file will appear here</p>
+        </div>
+        <button class="btn-download" id="downloadBtn">Download</button>
+        <button class="btn-reset" id="resetBtn">Convert Another</button>
+      </div>
+
+      <div class="pdf-toolbar hidden" id="pdfToolbar">
+        <button class="toolbar-btn" data-action="compress">Compress</button>
+        <button class="toolbar-btn" data-action="rotate-left">Rotate Left</button>
+        <button class="toolbar-btn" data-action="rotate-right">Rotate Right</button>
+        <button class="toolbar-btn danger" data-action="delete">Delete</button>
+        <button class="toolbar-btn export" data-action="export">Export</button>
+      </div>
+      <div class="page-strip hidden" id="pageStrip"></div>
+    </main>
+  </div>
+
+  <nav class="tab-bar" id="tabBar">
+    <button class="tab-btn active" data-tool="image-convert">
+      <span class="tab-icon">Img</span>
+      <span class="tab-label">Image</span>
+    </button>
+    <button class="tab-btn" data-tool="pdf-to-image">
+      <span class="tab-icon">P-I</span>
+      <span class="tab-label">PDF to Img</span>
+    </button>
+    <button class="tab-btn" data-tool="image-to-pdf">
+      <span class="tab-icon">I-P</span>
+      <span class="tab-label">Img to PDF</span>
+    </button>
+    <button class="tab-btn" data-tool="pdf-toolkit">
+      <span class="tab-icon">Kit</span>
+      <span class="tab-label">PDF Kit</span>
+    </button>
+    <button class="tab-btn" data-tool="office-to-pdf">
+      <span class="tab-icon">Off</span>
+      <span class="tab-label">Office</span>
+    </button>
+  </nav>
+
+  <p class="footer-note">Free &amp; open source &mdash; files are never stored on the server</p>
+
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/pdf-toolkit.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
