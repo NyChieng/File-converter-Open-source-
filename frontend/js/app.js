@@ -80,16 +80,27 @@
     dom.convertBtn.disabled = true;
   }
 
+  function getFileKind(file) {
+    if (file.type.startsWith('image/')) return 'image';
+    if (file.type === 'application/pdf') return 'pdf';
+    var ext = file.name.split('.').pop().toLowerCase();
+    if (['jpg', 'jpeg', 'png', 'webp', 'heif', 'heic', 'svg', 'bmp', 'tiff'].indexOf(ext) !== -1) return 'image';
+    if (ext === 'pdf') return 'pdf';
+    if (['docx', 'xlsx', 'pptx'].indexOf(ext) !== -1) return 'office';
+    return 'unknown';
+  }
+
   function handleFile(file) {
     if (!file) return;
     currentFile = file;
 
     var ext = file.name.split('.').pop().toUpperCase();
+    var kind = getFileKind(file);
     dom.fileName.textContent = file.name;
     dom.formatBadge.textContent = ext;
     dom.fileSize.textContent = formatSize(file.size);
 
-    if (file.type.startsWith('image/')) {
+    if (kind === 'image') {
       var reader = new FileReader();
       reader.onload = function () {
         dom.fileThumb.innerHTML = '<img src="' + reader.result + '" alt="preview">';
@@ -100,7 +111,7 @@
         dom.fileDetail.textContent = img.width + 'x' + img.height;
       };
       img.src = URL.createObjectURL(file);
-    } else if (file.type === 'application/pdf') {
+    } else if (kind === 'pdf') {
       dom.fileThumb.textContent = 'PDF';
       dom.fileDetail.textContent = '';
     } else {
@@ -130,7 +141,10 @@
     });
   }
 
-  dom.browseBtn.addEventListener('click', function () { dom.fileInput.click(); });
+  dom.browseBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    dom.fileInput.click();
+  });
   dom.fileInput.addEventListener('change', function () {
     if (dom.fileInput.files[0]) handleFile(dom.fileInput.files[0]);
   });

@@ -1,6 +1,16 @@
 import zipfile
 from pathlib import Path
-from pdf2image import convert_from_path
+
+
+def _pdf2image_available():
+    import shutil
+    if shutil.which("pdftoppm") or shutil.which("pdfinfo"):
+        try:
+            from pdf2image import convert_from_path
+            return True
+        except Exception:
+            pass
+    return False
 
 
 def _parse_page_range(pages_str: str | None, total_pages: int) -> list[int]:
@@ -25,6 +35,20 @@ def _parse_page_range(pages_str: str | None, total_pages: int) -> list[int]:
     return pages
 
 
+def _get_page_count(src: Path) -> int:
+    try:
+        import fitz
+        doc = fitz.open(src)
+        count = doc.page_count
+        doc.close()
+        return count
+    except Exception:
+        from pdf2image import convert_from_path
+        from pdf2image.pdf2image import pdfinfo_from_path
+        info = pdfinfo_from_path(str(src))
+        return info["Pages"]
+
+
 def convert_pdf_to_image(
     src: Path, dest: Path, output_format: str = "jpg",
     pages: str | None = None, dpi: int = 200,
@@ -32,7 +56,23 @@ def convert_pdf_to_image(
     output_format = output_format.lower().lstrip(".")
     fmt = "JPEG" if output_format in ("jpg", "jpeg") else "PNG"
 
-    images = convert_from_path(src, dpi=dpi)
+    if _pdf2image_available():
+        from pdf2image import convert_from_path
+        images = convert_from_path(src, dpi=dpi)
+    else:
+        import fitz
+        doc = fitz.open(src)
+        images = []
+        zoom = dpi / 72.0
+        mat = fitz.Matrix(zoom, zoom)
+        for i in range(doc.page_count):
+            page = doc[i]
+            pix = page.get_pixmap(matrix=mat)
+            from PIL import Image
+            img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+            images.append(img)
+        doc.close()
+
     page_numbers = _parse_page_range(pages, len(images))
 
     if len(page_numbers) == 1:

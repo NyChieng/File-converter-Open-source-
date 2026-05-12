@@ -8,7 +8,7 @@ ALLOWED_IMAGE_INPUT = {
     "image/jpeg", "image/png", "image/webp", "image/heif", "image/heic",
     "image/svg+xml", "image/bmp", "image/tiff",
 }
-ALLOWED_IMAGE_OUTPUT = {"jpg", "png", "webp", "pdf"}
+ALLOWED_IMAGE_OUTPUT = {"jpg", "jpeg", "png", "webp", "pdf"}
 ALLOWED_PDF_INPUT = {"application/pdf"}
 ALLOWED_OFFICE_INPUT = {
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
