@@ -69,7 +69,10 @@ def convert_pdf_to_image(
             page = doc[i]
             pix = page.get_pixmap(matrix=mat)
             from PIL import Image
-            img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+            samples = pix.samples
+            if not isinstance(samples, bytes):
+                samples = bytes(samples)
+            img = Image.frombytes("RGB", [pix.width, pix.height], samples)
             images.append(img)
         doc.close()
 

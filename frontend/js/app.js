@@ -39,11 +39,20 @@
     'office-to-pdf': ['PDF'],
   };
 
+  var toolAcceptAttr = {
+    'image-convert': '.jpg,.jpeg,.png,.webp,.heif,.heic,.svg,.bmp,.tiff',
+    'pdf-to-image': '.pdf',
+    'image-to-pdf': '.jpg,.jpeg,.png,.webp,.heif,.heic,.svg,.bmp,.tiff',
+    'pdf-toolkit': '.pdf',
+    'office-to-pdf': '.docx,.xlsx,.pptx',
+  };
+
   function switchTool(tool) {
     currentTool = tool;
     document.querySelectorAll('.tool-btn, .tab-btn').forEach(function (b) {
       b.classList.toggle('active', b.getAttribute('data-tool') === tool);
     });
+    dom.fileInput.setAttribute('accept', toolAcceptAttr[tool] || '');
     resetUI();
     renderFormatChips();
     if (tool === 'pdf-toolkit') {

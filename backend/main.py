@@ -1,3 +1,4 @@
+import logging
 import tempfile
 import zipfile
 from pathlib import Path
@@ -6,6 +7,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, File, Form, UploadFile, Request, HTTPException, BackgroundTasks
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("fileconverter")
 
 from backend.config import (
     ALLOWED_IMAGE_INPUT, ALLOWED_IMAGE_OUTPUT, ALLOWED_PDF_INPUT,
@@ -92,19 +96,29 @@ async def convert_file(
     cleanup_paths = [tmp_in_path, tmp_out]
 
     if mime in ALLOWED_IMAGE_INPUT:
-        if output_format == "pdf":
-            result = image_to_pdf.convert_images_to_pdf(
-                [tmp_in_path], tmp_out
-            )
-        else:
-            result = image.convert_image(
-                tmp_in_path, tmp_out, output_format
-            )
+        try:
+            if output_format == "pdf":
+                result = image_to_pdf.convert_images_to_pdf(
+                    [tmp_in_path], tmp_out
+                )
+            else:
+                result = image.convert_image(
+                    tmp_in_path, tmp_out, output_format
+                )
+        except Exception as e:
+            logger.exception("Image conversion failed")
+            _cleanup(*cleanup_paths)
+            raise HTTPException(500, f"Conversion failed: {e}")
     elif mime in ALLOWED_PDF_INPUT:
         if output_format in ("jpg", "png", "jpeg"):
-            result = pdf_to_image.convert_pdf_to_image(
-                tmp_in_path, tmp_out, output_format
-            )
+            try:
+                result = pdf_to_image.convert_pdf_to_image(
+                    tmp_in_path, tmp_out, output_format
+                )
+            except Exception as e:
+                logger.exception("PDF to image conversion failed")
+                _cleanup(*cleanup_paths)
+                raise HTTPException(500, f"Conversion failed: {e}")
         elif output_format in ("webp", "pdf"):
             _cleanup(*cleanup_paths)
             raise HTTPException(
