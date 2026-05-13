@@ -1,18 +1,53 @@
-const PDFToolkit = {
+var PDFToolkit = {
   pages: [],
   selectedPages: new Set(),
   sortable: null,
+  _thumbnails: {},
 
-  init(pageCount) {
+  init: function (pageCount, file) {
+    var self = this;
     this.pages = Array.from({ length: pageCount }, function (_, i) {
       return { number: i + 1, selected: false, deleted: false, rotation: 0 };
     });
     this.selectedPages.clear();
+    this._thumbnails = {};
+    this._renderThumbnails(file);
     this.render();
     this._initSortable();
   },
 
-  render() {
+  _renderThumbnails: function (file) {
+    var self = this;
+    if (typeof pdfjsLib === 'undefined') {
+      self.render();
+      return;
+    }
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    var reader = new FileReader();
+    reader.onload = function () {
+      pdfjsLib.getDocument({ data: reader.result }).promise.then(function (doc) {
+        var remaining = self.pages.length;
+        self.pages.forEach(function (page) {
+          doc.getPage(page.number).then(function (pdfPage) {
+            var scale = 0.3;
+            var viewport = pdfPage.getViewport({ scale: scale });
+            var canvas = document.createElement('canvas');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            var ctx = canvas.getContext('2d');
+            pdfPage.render({ canvasContext: ctx, viewport: viewport }).promise.then(function () {
+              self._thumbnails[page.number] = canvas.toDataURL();
+              remaining--;
+              if (remaining === 0) self.render();
+            });
+          });
+        });
+      });
+    };
+    reader.readAsArrayBuffer(file);
+  },
+
+  render: function () {
     var strip = document.getElementById('pageStrip');
     strip.innerHTML = '';
     var self = this;
@@ -22,10 +57,21 @@ const PDFToolkit = {
       el.setAttribute('data-page', page.number);
       if (page.selected) el.classList.add('selected');
       if (page.deleted) el.classList.add('deleted');
-      el.innerHTML =
-        '<span class="page-thumb-num">' + page.number + '</span>' +
-        '<span class="page-thumb-preview">Pg ' + page.number + '</span>' +
-        '<span class="deleted-label">deleted</span>';
+
+      var img = self._thumbnails[page.number];
+      if (img) {
+        el.innerHTML =
+          '<img src="' + img + '" alt="Page ' + page.number + '" class="thumb-img">' +
+          '<span class="page-thumb-num">' + page.number + '</span>';
+      } else {
+        el.innerHTML =
+          '<span class="page-thumb-preview">Pg ' + page.number + '</span>' +
+          '<span class="page-thumb-num">' + page.number + '</span>';
+      }
+      if (page.deleted) {
+        el.innerHTML += '<span class="deleted-label">deleted</span>';
+      }
+
       el.addEventListener('click', function (e) {
         if (e.shiftKey || e.ctrlKey) {
           self.toggleSelect(page.number);
@@ -38,7 +84,7 @@ const PDFToolkit = {
     this._updateToolbarState();
   },
 
-  selectOne(pageNum) {
+  selectOne: function (pageNum) {
     var self = this;
     this.pages.forEach(function (p) { p.selected = false; });
     this.selectedPages.clear();
@@ -50,7 +96,7 @@ const PDFToolkit = {
     this.render();
   },
 
-  toggleSelect(pageNum) {
+  toggleSelect: function (pageNum) {
     var page = this.pages.find(function (p) { return p.number === pageNum; });
     if (!page || page.deleted) return;
     page.selected = !page.selected;
@@ -62,7 +108,7 @@ const PDFToolkit = {
     this.render();
   },
 
-  markDeleted() {
+  markDeleted: function () {
     var self = this;
     this.selectedPages.forEach(function (num) {
       var page = self.pages.find(function (p) { return p.number === num; });
@@ -72,7 +118,7 @@ const PDFToolkit = {
     this.render();
   },
 
-  rotateSelected(angle) {
+  rotateSelected: function (angle) {
     var self = this;
     this.selectedPages.forEach(function (num) {
       var page = self.pages.find(function (p) { return p.number === num; });
@@ -81,15 +127,15 @@ const PDFToolkit = {
     this.render();
   },
 
-  getOrder() {
+  getOrder: function () {
     return this.pages.map(function (p) { return p.number; });
   },
 
-  getPagesToDelete() {
+  getPagesToDelete: function () {
     return this.pages.filter(function (p) { return p.deleted; }).map(function (p) { return p.number; });
   },
 
-  getRotations() {
+  getRotations: function () {
     var rots = {};
     this.pages.forEach(function (p) {
       if (p.rotation) rots[String(p.number)] = p.rotation;
@@ -97,7 +143,7 @@ const PDFToolkit = {
     return rots;
   },
 
-  _initSortable() {
+  _initSortable: function () {
     var strip = document.getElementById('pageStrip');
     if (this.sortable) this.sortable.destroy();
     var self = this;
@@ -113,7 +159,7 @@ const PDFToolkit = {
     }
   },
 
-  _updateToolbarState() {
+  _updateToolbarState: function () {
     var hasSelection = this.selectedPages.size > 0;
     document.querySelectorAll('.toolbar-btn').forEach(function (btn) {
       if (btn.getAttribute('data-action') === 'export') return;
@@ -121,9 +167,10 @@ const PDFToolkit = {
     });
   },
 
-  reset() {
+  reset: function () {
     this.pages = [];
     this.selectedPages.clear();
+    this._thumbnails = {};
     if (this.sortable) this.sortable.destroy();
     this.sortable = null;
     document.getElementById('pageStrip').innerHTML = '';

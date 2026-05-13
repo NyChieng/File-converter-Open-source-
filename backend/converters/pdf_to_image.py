@@ -4,7 +4,7 @@ from pathlib import Path
 
 def _pdf2image_available():
     import shutil
-    if shutil.which("pdftoppm") or shutil.which("pdfinfo"):
+    if shutil.which("pdftoppm"):
         try:
             from pdf2image import convert_from_path
             return True

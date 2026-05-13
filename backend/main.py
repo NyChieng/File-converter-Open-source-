@@ -109,6 +109,18 @@ async def convert_file(
             logger.exception("Image conversion failed")
             _cleanup(*cleanup_paths)
             raise HTTPException(500, f"Conversion failed: {e}")
+    elif mime in ALLOWED_OFFICE_INPUT:
+        if output_format != "pdf":
+            _cleanup(*cleanup_paths)
+            raise HTTPException(
+                400, f"Office files can only be converted to PDF, not {output_format}"
+            )
+        try:
+            result = office.convert_office_to_pdf(tmp_in_path, tmp_out)
+        except Exception as e:
+            logger.exception("Office to PDF conversion failed")
+            _cleanup(*cleanup_paths)
+            raise HTTPException(500, f"Conversion failed: {e}")
     elif mime in ALLOWED_PDF_INPUT:
         if output_format in ("jpg", "png", "jpeg"):
             try:

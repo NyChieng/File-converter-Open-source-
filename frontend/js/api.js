@@ -12,8 +12,19 @@ const API = {
     });
 
     if (!response.ok) {
-      const err = await response.json().catch(() => ({ detail: 'Conversion failed' }));
-      throw new Error(err.detail || 'HTTP ' + response.status);
+      let detail;
+      try {
+        const text = await response.text();
+        try {
+          const err = JSON.parse(text);
+          detail = err.detail;
+        } catch {
+          detail = text.substring(0, 300) || ('HTTP ' + response.status);
+        }
+      } catch {
+        detail = 'HTTP ' + response.status;
+      }
+      throw new Error(detail || 'HTTP ' + response.status);
     }
 
     const blob = await response.blob();
@@ -37,8 +48,19 @@ const API = {
     });
 
     if (!response.ok) {
-      const err = await response.json().catch(() => ({ detail: 'Toolkit action failed' }));
-      throw new Error(err.detail || 'HTTP ' + response.status);
+      let detail;
+      try {
+        const text = await response.text();
+        try {
+          const err = JSON.parse(text);
+          detail = err.detail;
+        } catch {
+          detail = text.substring(0, 300) || ('HTTP ' + response.status);
+        }
+      } catch {
+        detail = 'HTTP ' + response.status;
+      }
+      throw new Error(detail || 'HTTP ' + response.status);
     }
 
     if (action === 'page_count') {

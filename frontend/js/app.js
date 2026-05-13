@@ -141,7 +141,7 @@
   function loadPdfPages(file) {
     API.pdfToolkit(file, 'page_count').then(function (result) {
       dom.fileDetail.textContent = result.pageCount + ' pages';
-      PDFToolkit.init(result.pageCount);
+      PDFToolkit.init(result.pageCount, file);
       dom.pdfToolbar.classList.remove('hidden');
       dom.pageStrip.classList.remove('hidden');
       dom.formatSection.classList.add('hidden');
